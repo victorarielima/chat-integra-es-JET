@@ -31,19 +31,58 @@ const Integracoes = () => {
       <AppSidebar />
       <SidebarInset>
         <div className={`min-h-screen ${theme === "dark" ? "bg-black" : "bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100"}`}>
-          {/* Efeitos visuais de fundo - apenas modo escuro */}
+          {/* Efeitos visuais de fundo - apenas modo escuro - cobre página inteira */}
           {theme === "dark" && (
             <>
-              <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full h-96 pointer-events-none">
+              {/* Efeito superior */}
+              <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-96 pointer-events-none z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-3xl opacity-70 transform -skew-y-12"></div>
               </div>
-              <div className="absolute top-0 left-0 w-1/3 h-1/2 pointer-events-none" style={{
+              
+              {/* Glow verde superior esquerda */}
+              <div className="fixed top-0 left-0 w-1/3 h-1/2 pointer-events-none z-0" style={{
                 background: 'radial-gradient(circle at 0% 50%, rgba(34, 197, 94, 0.25) 0%, transparent 70%)',
                 filter: 'blur(120px)'
               }}></div>
-              <div className="absolute top-0 right-0 w-1/3 h-1/2 pointer-events-none" style={{
+              
+              {/* Glow verde superior direita */}
+              <div className="fixed top-0 right-0 w-1/3 h-1/2 pointer-events-none z-0" style={{
                 background: 'radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.25) 0%, transparent 70%)',
                 filter: 'blur(120px)'
+              }}></div>
+
+              {/* Efeito médio */}
+              <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-full h-96 pointer-events-none z-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent blur-3xl opacity-60 transform -skew-y-12"></div>
+              </div>
+
+              {/* Glow verde médio esquerda */}
+              <div className="fixed top-1/3 left-0 w-1/4 h-1/3 pointer-events-none z-0" style={{
+                background: 'radial-gradient(circle at 0% 50%, rgba(34, 197, 94, 0.2) 0%, transparent 70%)',
+                filter: 'blur(100px)'
+              }}></div>
+
+              {/* Glow verde médio direita */}
+              <div className="fixed top-1/3 right-0 w-1/4 h-1/3 pointer-events-none z-0" style={{
+                background: 'radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.2) 0%, transparent 70%)',
+                filter: 'blur(100px)'
+              }}></div>
+
+              {/* Efeito inferior */}
+              <div className="fixed top-2/3 left-1/2 -translate-x-1/2 w-full h-96 pointer-events-none z-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent blur-3xl opacity-50 transform -skew-y-12"></div>
+              </div>
+
+              {/* Glow verde inferior esquerda */}
+              <div className="fixed top-2/3 left-0 w-1/4 h-1/3 pointer-events-none z-0" style={{
+                background: 'radial-gradient(circle at 0% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 70%)',
+                filter: 'blur(100px)'
+              }}></div>
+
+              {/* Glow verde inferior direita */}
+              <div className="fixed top-2/3 right-0 w-1/4 h-1/3 pointer-events-none z-0" style={{
+                background: 'radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 70%)',
+                filter: 'blur(100px)'
               }}></div>
             </>
           )}
