@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileHeader } from "@/components/MobileHeader";
 import { getInitialSidebarState } from "@/hooks/use-sidebar-state";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIntegrations } from "@/hooks/use-integrations";
@@ -15,15 +16,13 @@ const Integracoes = () => {
   const { integrations: groupedIntegrations, loading, error } = useIntegrations();
 
   const filteredIntegrations = useMemo(() => {
-    return groupedIntegrations.filter(
+    const filtered = groupedIntegrations.filter(
       (integration) =>
-        integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        integration.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        integration.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        integration.actions.some((action) =>
-          action.description.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        integration.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    // Ordenar alfabeticamente por nome
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
   }, [groupedIntegrations, searchTerm]);
 
   return (
@@ -31,6 +30,7 @@ const Integracoes = () => {
       <AppSidebar />
       <SidebarInset>
         <div className={`min-h-screen ${theme === "dark" ? "bg-black" : "bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100"}`}>
+          <MobileHeader />
           {/* Efeitos visuais de fundo - apenas modo escuro - cobre página inteira */}
           {theme === "dark" && (
             <>
@@ -87,26 +87,26 @@ const Integracoes = () => {
             </>
           )}
           {/* Main Content */}
-          <main className="container mx-auto px-6 py-8 relative z-10">
+          <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:pt-6 pt-16 relative z-10">
             {/* Search Bar */}
-            <div className="mb-8 max-w-2xl animate-fade-in">
+            <div className="mb-6 sm:mb-8 max-w-2xl animate-fade-in">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 sm:w-5 h-4 sm:h-5" />
                 <Input
                   type="text"
-                  placeholder="Buscar integrações..."
+                  placeholder="Buscar..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-card border-border/50 focus:border-primary/50 transition-colors"
+                  className="pl-10 !bg-transparent border-border/50 focus:border-primary/50 transition-colors text-sm"
                 />
               </div>
             </div>
 
             {/* Loading State */}
             {loading && (
-              <div className="text-center py-16">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-                <p className="text-muted-foreground">Carregando integrações...</p>
+              <div className="text-center py-12 sm:py-16">
+                <Loader2 className="w-6 sm:w-8 h-6 sm:h-8 animate-spin mx-auto mb-3 sm:mb-4 text-primary" />
+                <p className="text-muted-foreground text-sm">Carregando integrações...</p>
               </div>
             )}
 

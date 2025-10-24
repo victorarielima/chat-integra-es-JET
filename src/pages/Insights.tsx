@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileHeader } from "@/components/MobileHeader";
 import { getInitialSidebarState } from "@/hooks/use-sidebar-state";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIntegrations } from "@/hooks/use-integrations";
@@ -82,6 +83,7 @@ const Insights = () => {
       <AppSidebar />
       <SidebarInset>
         <div className={`min-h-screen ${theme === "dark" ? "bg-black" : "bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100"}`}>
+          <MobileHeader />
           {/* Efeitos visuais de fundo - apenas modo escuro */}
           {theme === "dark" && (
             <>
@@ -139,30 +141,30 @@ const Insights = () => {
           )}
           {/* Main Content */}
 
-          <main className="container mx-auto px-6 py-12 relative z-10">
+          <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 md:pt-8 pt-16 relative z-10">
             {/* Header */}
-            <div className="mb-12">
-              <h1 className={`text-5xl font-bold mb-4 ${theme === "dark" ? "text-white" : "text-black"}`}>
+            <div className="mb-8 sm:mb-12">
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 ${theme === "dark" ? "text-white" : "text-black"}`}>
                 Possibilidades de <span className="bg-gradient-to-r from-[#58FF0F] via-[#59FFFF] to-[#00FF00] bg-clip-text text-transparent">Integração</span>
               </h1>
-              <p className={`text-lg ${theme === "dark" ? "text-foreground/60" : "text-gray-600"}`}>
+              <p className={`text-sm sm:text-base md:text-lg ${theme === "dark" ? "text-foreground/60" : "text-gray-600"}`}>
                 Explore todas as possibilidades e ações disponíveis para integrar suas plataformas
               </p>
             </div>
 
             {/* Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
-              <Card className={`p-6 ${theme === "dark" ? "bg-card/50 border-border/30" : "bg-white border-gray-200"}`}>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-12">
+              <Card className={`p-3 sm:p-6 ${theme === "dark" ? "bg-card/50 border-border/30" : "bg-white border-gray-200"}`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-muted-foreground text-sm mb-1">Sistemas</p>
-                    <p className="text-3xl font-bold text-primary">{stats.totalSistemas}</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-1">Sistemas</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-primary">{stats.totalSistemas}</p>
                   </div>
-                  <Grid3x3 className="w-8 h-8 opacity-20" />
+                  <Grid3x3 className="w-6 sm:w-8 h-6 sm:h-8 opacity-20" />
                 </div>
               </Card>
               
-              <Card className={`p-6 ${theme === "dark" ? "bg-card/50 border-border/30" : "bg-white border-gray-200"}`}>
+              <Card className={`p-3 sm:p-6 ${theme === "dark" ? "bg-card/50 border-border/30" : "bg-white border-gray-200"}`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm mb-1">Total de Ações</p>
@@ -199,7 +201,7 @@ const Insights = () => {
                   placeholder="Buscar sistema ou ação..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`pl-10 ${theme === "dark" ? "bg-card/50 border-border/30" : "bg-white border-gray-200"}`}
+                  className={`pl-10 !bg-transparent ${theme === "dark" ? "border-border/30" : "border-gray-200"}`}
                 />
               </div>
             </div>

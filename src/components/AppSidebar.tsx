@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSavesSidebarState } from "@/hooks/use-sidebar-state";
+import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/assets/jetsales-logo.png";
 import logoReduzida from "@/assets/logo-reduzida.png";
 import logoPreta from "@/assets/jetsales-logo-preta.png";
@@ -41,31 +42,40 @@ const menuItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const { theme, toggleTheme } = useTheme();
+  const isMobile = useIsMobile();
   useSavesSidebarState(state); // Salva o estado no localStorage
   const isExpanded = state === "expanded";
 
   return (
-    <Sidebar collapsible="icon" side="left" data-state={isExpanded ? "expanded" : "collapsed"}>
+    <Sidebar 
+      collapsible="icon" 
+      side="left" 
+      data-state={isExpanded ? "expanded" : "collapsed"}
+      className={isMobile ? "md:hidden" : ""}
+    >
       {/* LOGO - Primeiro Item */}
       <SidebarHeader className="border-b border-border/20 pb-4">
         <div className="flex items-center justify-center px-2 py-2 relative">
           <div className={`flex items-center justify-center ${
-            isExpanded ? (theme === "light" ? "h-12 w-32" : "h-12 w-48") : "h-12 w-12"
+            isExpanded && !isMobile ? (theme === "light" ? "h-12 w-32" : "h-12 w-48") : "h-12 w-12"
           }`}>
             <img
-              src={isExpanded 
-                ? (theme === "light" ? logoPreta : logo)
-                : (theme === "light" ? logoReduzidaPreta : logoReduzida)
+              src={isMobile 
+                ? (theme === "light" ? logoReduzidaPreta : logoReduzida)
+                : (isExpanded 
+                  ? (theme === "light" ? logoPreta : logo)
+                  : (theme === "light" ? logoReduzidaPreta : logoReduzida)
+                )
               }
               alt="JetSales Brasil"
               className="transition-all duration-300 h-full w-full object-contain"
             />
           </div>
           
-          {/* Botão X para recolher (apenas no modo expandido) */}
-          {isExpanded && (
+          {/* Botão X para recolher (apenas no modo expandido e desktop) */}
+          {isExpanded && !isMobile && (
             <Button
               variant="ghost"
               size="icon"
@@ -78,8 +88,8 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      {/* MENU SANDUÍCHE - Segundo Item (somente no modo reduzido) */}
-      {!isExpanded && (
+      {/* MENU SANDUÍCHE - Segundo Item (somente no modo reduzido e desktop) */}
+      {!isExpanded && !isMobile && (
         <SidebarGroup className="border-b border-border/20">
           <SidebarGroupContent>
             <SidebarMenu>
@@ -110,7 +120,13 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       tooltip={item.title}
                       isActive={isActive}
-                      onClick={() => navigate(item.url)}
+                      onClick={() => {
+                        navigate(item.url);
+                        // Fecha o menu mobile após clicar
+                        if (isMobile) {
+                          setOpenMobile(false);
+                        }
+                      }}
                       className={`
                         transition-all duration-200 cursor-pointer
                         ${isActive 
@@ -132,7 +148,8 @@ export function AppSidebar() {
 
       {/* BOTÃO TEMA - Último Item */}
       <SidebarFooter className="border-t border-border/20 pt-4 pb-4">
-        {isExpanded ? (
+        {/* Mostrar toggle apenas no desktop */}
+        {isExpanded && !isMobile ? (
           // Slider/Toggle no modo expandido
           <div className="flex flex-col gap-2 px-2">
             <div className="flex items-center justify-center gap-1.5">
@@ -176,8 +193,8 @@ export function AppSidebar() {
               <Moon className={`h-4 w-4 ${theme === "dark" ? "text-indigo-300 font-bold" : "text-gray-500"}`} />
             </div>
           </div>
-        ) : (
-          // Ícone no modo reduzido
+        ) : !isMobile ? (
+          // Ícone no modo reduzido (desktop)
           <Button
             variant="ghost"
             size="icon"
@@ -194,7 +211,7 @@ export function AppSidebar() {
               <Sun className="h-5 w-5" />
             )}
           </Button>
-        )}
+        ) : null}
       </SidebarFooter>
     </Sidebar>
   );

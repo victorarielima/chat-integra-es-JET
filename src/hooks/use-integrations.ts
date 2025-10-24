@@ -35,14 +35,9 @@ export const useIntegrations = (): UseIntegrationsResult => {
       return acc;
     }, {});
 
-    console.log("🏢 Sistemas encontrados:", Object.keys(groupedBySistema));
-
     // Depois transforma em integrações
     return Object.entries(groupedBySistema).map(([sistema, items]) => {
-      console.log(`📦 Processando ${sistema} com ${items.length} ações`);
-      
       const integrationId = sistema.toLowerCase().replace(/\s+/g, "-");
-      console.log(`   ID gerado: "${integrationId}"`);
       
       const actions: IntegrationAction[] = items.map((item, idx) => {
         const methodEndpoint = item["Método / Endpoint"] || "";
@@ -59,7 +54,6 @@ export const useIntegrations = (): UseIntegrationsResult => {
           description: item.Descrição || "",
           observations: item["📝 Observações"] || "",
         };
-        console.log(`  └─ Ação: ${action.name}`);
         return action;
       });
 
@@ -94,25 +88,19 @@ export const useIntegrations = (): UseIntegrationsResult => {
       }
 
       const data = await response.json();
-      console.log("✅ Dados recebidos do webhook:", data);
 
       // Processa a resposta do webhook
       if (Array.isArray(data)) {
-        console.log("📊 É um array com", data.length, "items");
         const transformed = transformWebhookData(data);
-        console.log("🔄 Dados transformados:", transformed);
         setIntegrations(transformed);
       } else if (data && typeof data === "object") {
-        console.log("⚠️ Dados não são array, checando estrutura:", Object.keys(data));
         setIntegrations([]);
       } else {
-        console.log("❌ Dados inválidos:", data);
         setIntegrations([]);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao buscar integrações";
       setError(errorMessage);
-      console.error("🔴 Erro ao buscar integrações:", err);
     } finally {
       setLoading(false);
     }

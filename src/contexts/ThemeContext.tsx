@@ -14,8 +14,39 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function getSystemTheme(): Theme {
+  if (typeof window !== "undefined") {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return prefersDark ? "dark" : "light";
+  }
+  return "light";
+}
+
 export function ThemeProvider({ children, defaultTheme = "light" }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Detectar se é mobile
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mediaQuery.matches);
+
+    // Se for mobile, usar preferência do sistema
+    if (mediaQuery.matches) {
+      setTheme(getSystemTheme());
+    }
+
+    // Listener para mudanças no tamanho da tela
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+      if (e.matches) {
+        setTheme(getSystemTheme());
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -24,7 +55,10 @@ export function ThemeProvider({ children, defaultTheme = "light" }: ThemeProvide
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    // Apenas toggle no desktop
+    if (!isMobile) {
+      setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    }
   };
 
   return (

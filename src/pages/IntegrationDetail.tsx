@@ -5,6 +5,7 @@ import { ArrowLeft, Copy, Check, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileHeader } from "@/components/MobileHeader";
 import { getInitialSidebarState } from "@/hooks/use-sidebar-state";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIntegrations } from "@/hooks/use-integrations";
@@ -81,6 +82,7 @@ const IntegrationDetail = () => {
       <AppSidebar />
       <SidebarInset>
         <div className={`min-h-screen ${theme === "dark" ? "bg-black" : "bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100"}`}>
+          <MobileHeader />
           {/* Efeitos visuais de fundo - apenas modo escuro */}
           {theme === "dark" && (
             <>
@@ -98,7 +100,7 @@ const IntegrationDetail = () => {
             </>
           )}
           {/* Main Content */}
-          <main className="container mx-auto px-6 py-8 relative z-10">
+          <main className="container mx-auto px-6 py-8 md:pt-8 pt-16 relative z-10">
             <Link to="/integracoes">
               <Button variant="ghost" size="sm" className="mb-6 hover:text-primary text-foreground/70">
                 <ArrowLeft className="w-4 h-4 mr-2" />
