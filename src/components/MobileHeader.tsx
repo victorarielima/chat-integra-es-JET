@@ -2,13 +2,11 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
-import logoReduzida from "@/assets/logo-reduzida.png";
-import logoReduzidaPreta from "@/assets/logo-reduzida-preta.png";
+import { Menu } from "lucide-react";
 
 export function MobileHeader() {
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
-  const { theme } = useTheme();
   const isVisible = useScrollDirection();
 
   if (!isMobile) return null;
@@ -21,13 +19,9 @@ export function MobileHeader() {
     >
       <button
         onClick={() => setOpenMobile(true)}
-        className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity"
+        className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity rounded-md hover:bg-accent"
       >
-        <img
-          src={theme === "light" ? logoReduzidaPreta : logoReduzida}
-          alt="Menu"
-          className="w-full h-full object-contain"
-        />
+        <Menu className="w-6 h-6 text-foreground" />
       </button>
     </div>
   );

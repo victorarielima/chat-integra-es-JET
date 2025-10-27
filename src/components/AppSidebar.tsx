@@ -147,71 +147,27 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* BOTÃO TEMA - Último Item */}
-      <SidebarFooter className="border-t border-border/20 pt-4 pb-4">
-        {/* Mostrar toggle apenas no desktop */}
-        {isExpanded && !isMobile ? (
-          // Slider/Toggle no modo expandido
-          <div className="flex flex-col gap-2 px-2">
-            <div className="flex items-center justify-center gap-1.5">
-              <Sun className={`h-4 w-4 ${theme === "light" ? "text-orange-500 font-bold" : "text-gray-500"}`} />
-              
-              <button
-                onClick={toggleTheme}
-                className={`relative w-12 h-6 rounded-full transition-all duration-300 overflow-hidden ${
-                  theme === "light"
-                    ? "bg-gradient-to-b from-sky-500 to-sky-400"
-                    : "bg-gradient-to-b from-slate-900 to-slate-800"
-                }`}
-              >
-                {/* Nuvens (modo claro) */}
-                {theme === "light" && (
-                  <>
-                    <div className="absolute top-0.5 left-1.5 w-2 h-1 bg-white rounded-full opacity-70"></div>
-                    <div className="absolute top-1 right-1.5 w-1.5 h-0.5 bg-white rounded-full opacity-60"></div>
-                  </>
-                )}
-                
-                {/* Estrelas (modo escuro) */}
-                {theme === "dark" && (
-                  <>
-                    <div className="absolute top-0.5 left-1.5 w-0.5 h-0.5 bg-white rounded-full"></div>
-                    <div className="absolute top-1.5 left-4 w-0.5 h-0.5 bg-white rounded-full"></div>
-                    <div className="absolute top-1 right-1.5 w-0.5 h-0.5 bg-white rounded-full"></div>
-                    <div className="absolute top-3 right-2.5 w-0.5 h-0.5 bg-white rounded-full"></div>
-                    <div className="absolute top-1.5 left-2.5 w-0.5 h-0.5 bg-white rounded-full"></div>
-                  </>
-                )}
-                
-                {/* Toggle Circle */}
-                <div
-                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
-                    theme === "light" ? "left-0.5" : "right-0.5"
-                  }`}
-                />
-              </button>
-              
-              <Moon className={`h-4 w-4 ${theme === "dark" ? "text-indigo-300 font-bold" : "text-gray-500"}`} />
-            </div>
-          </div>
-        ) : !isMobile ? (
-          // Ícone no modo reduzido (desktop)
+      <SidebarFooter className="border-t border-border/20 pt-4 pb-4 px-2">
+        {/* Botão de tema em formato de ícone em quadrado */}
+        {!isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className={`w-full transition-all duration-300 ${
+            className={`w-full h-12 rounded-lg transition-all duration-300 flex items-center justify-center ${
               theme === "light"
-                ? "bg-black text-white hover:bg-gray-800"
-                : "bg-white text-black hover:bg-gray-200"
+                ? "bg-emerald-100 text-emerald-600 hover:bg-emerald-200"
+                : "bg-emerald-900/40 text-emerald-400 hover:bg-emerald-900/60"
             }`}
+            title={`Mudar para modo ${theme === "light" ? "escuro" : "claro"}`}
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-6 w-6" />
             ) : (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-6 w-6" />
             )}
           </Button>
-        ) : null}
+        )}
       </SidebarFooter>
     </Sidebar>
   );

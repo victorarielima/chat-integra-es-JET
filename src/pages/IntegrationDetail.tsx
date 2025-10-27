@@ -86,14 +86,14 @@ const IntegrationDetail = () => {
           {/* Efeitos visuais de fundo - apenas modo escuro */}
           {theme === "dark" && (
             <>
-              <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full h-96 pointer-events-none">
+              <div className="fixed top-1/4 left-1/2 -translate-x-1/2 w-full h-96 pointer-events-none z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent blur-3xl opacity-70 transform -skew-y-12"></div>
               </div>
-              <div className="absolute top-0 left-0 w-1/3 h-1/2 pointer-events-none" style={{
+              <div className="fixed top-0 left-0 w-1/3 h-1/2 pointer-events-none z-0" style={{
                 background: 'radial-gradient(circle at 0% 50%, rgba(34, 197, 94, 0.25) 0%, transparent 70%)',
                 filter: 'blur(120px)'
               }}></div>
-              <div className="absolute top-0 right-0 w-1/3 h-1/2 pointer-events-none" style={{
+              <div className="fixed top-0 right-0 w-1/3 h-1/2 pointer-events-none z-0" style={{
                 background: 'radial-gradient(circle at 100% 50%, rgba(34, 197, 94, 0.25) 0%, transparent 70%)',
                 filter: 'blur(120px)'
               }}></div>
