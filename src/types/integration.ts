@@ -16,3 +16,10 @@ export interface IntegrationAction {
   description: string;
   observations: string;
 }
+
+export interface InsightData {
+  row_number: number;
+  Sistema: string;
+  Insight: string;
+  tipo?: string;
+}
