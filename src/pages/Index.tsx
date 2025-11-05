@@ -23,6 +23,8 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
+  const [selectedActions, setSelectedActions] = useState<string[]>([]);
+  const [showTypeSelection, setShowTypeSelection] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,14 +43,59 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleOpenIntegrationDropdown = () => {
+    // Adiciona uma mensagem vazia para entrar no modo chat
+    if (messages.length === 0) {
+      setMessages([{
+        id: Date.now().toString(),
+        text: "Selecione uma integração para começar",
+        sender: "bot",
+        timestamp: new Date(),
+      }]);
+    }
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleSendWithType = (type: "integração" | "agente de ia") => {
+    const sistemaNome = systemsList.find(s => s.id === selectedIntegration)?.name || "";
+    const actionsNames = selectedActions
+      .map(actionId => {
+        const integration = systemsList.find(s => s.id === selectedIntegration);
+        return integration?.actions.find(a => a.id === actionId)?.name || "";
+      })
+      .filter(Boolean);
+
+    const actionsFormatted = actionsNames.length > 1
+      ? actionsNames.slice(0, -1).join(", ") + " e " + actionsNames[actionsNames.length - 1]
+      : actionsNames[0] || "";
+
+    const mensagemFormatada = `Gostaria de fazer uma ${type} na plataforma da Jetsales para ${actionsFormatted} na plataforma ${sistemaNome}, é possível fazer isso?`;
+    
+    // Limpar estados
+    setSelectedIntegration(null);
+    setSelectedActions([]);
+    setShowTypeSelection(false);
+
+    // Enviar a mensagem (isso vai entrar no modo de chat automaticamente)
+    sendMessage({ preventDefault: () => {} } as React.FormEvent, mensagemFormatada);
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Fechar dropdown ao clicar fora
+  // Fechar dropdown e voltar ao estado inicial ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        // Se não há mensagens de usuário, volta ao estado inicial
+        const hasUserMessages = messages.some(m => m.sender === "user");
+        if (!hasUserMessages) {
+          setMessages([]);
+          setSelectedIntegration(null);
+          setSelectedActions([]);
+          setShowTypeSelection(false);
+        }
         setIsDropdownOpen(false);
       }
     };
@@ -57,15 +104,16 @@ const Index = () => {
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isDropdownOpen]);
+  }, [isDropdownOpen, messages]);
 
-  const sendMessage = async (e: React.FormEvent) => {
+  const sendMessage = async (e: React.FormEvent, customMessage?: string) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+    const messageToSend = customMessage || inputMessage;
+    if (!messageToSend.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: messageToSend,
       sender: "user",
       timestamp: new Date(),
     };
@@ -80,7 +128,7 @@ const Index = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: inputMessage }),
+        body: JSON.stringify({ message: messageToSend }),
       });
 
       if (!response.ok) {
@@ -222,36 +270,215 @@ const Index = () => {
 
                 {/* Input Area - Inicial */}
                 <div className="w-full max-w-3xl px-3 sm:px-6">
-                  <form onSubmit={sendMessage} className="relative">
-                    <div className={`relative backdrop-blur-md rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 ${
+                  {/* Seleção de Integração Inicial */}
+                  {selectedIntegration && (
+                    <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-5 mb-4 ${
                       theme === "dark"
-                        ? "bg-card/50 border border-border/30 hover:border-primary/30"
-                        : "bg-white border-2 border-gray-200 hover:border-[#58FF0F]/50 hover:shadow-[0_0_20px_rgba(88,255,15,0.2)]"
+                        ? "bg-card/50 border border-border/30"
+                        : "bg-white border-2 border-gray-200"
                     }`}>
-                      <Input
-                        type="text"
-                        placeholder="Faça uma pergunta..."
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 className="text-sm sm:text-base font-bold text-foreground truncate pr-2">
+                          {systemsList.find(s => s.id === selectedIntegration)?.name || `ID: ${selectedIntegration}`}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedIntegration(null);
+                            setSelectedActions([]);
+                            setShowTypeSelection(false);
+                          }}
+                          className="text-sm px-2 sm:px-3 py-1 rounded hover:bg-red-500/20 text-red-500 transition-colors flex-shrink-0"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* Lista de Ações/Opções */}
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground font-semibold mb-2 sm:mb-3">Selecione até 3 opções:</p>
+                        {systemsList.find(s => s.id === selectedIntegration)?.actions.map((action, idx) => {
+                          const isSelected = selectedActions.includes(action.id);
+                          const canSelect = selectedActions.length < 3 || isSelected;
+                          
+                          return (
+                          <button
+                            key={action.id}
+                            type="button"
+                            onClick={() => {
+                              if (canSelect) {
+                                if (isSelected) {
+                                  setSelectedActions(prev => prev.filter(id => id !== action.id));
+                                } else {
+                                  setSelectedActions(prev => [...prev, action.id]);
+                                }
+                              }
+                            }}
+                            className={`w-full text-left p-2 sm:p-3 rounded-lg border-2 transition-all hover:shadow-md ${
+                              isSelected
+                                ? theme === "dark"
+                                  ? "border-primary bg-primary/20"
+                                  : "border-[#58FF0F] bg-[#58FF0F]/10"
+                                : !canSelect
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : theme === "dark"
+                                    ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10"
+                                    : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5"
+                            }`}
+                          >
+                            <p className="text-xs sm:text-sm font-semibold text-foreground">
+                              <span className="truncate">{action.name}</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {action.description || "Sem descrição"}
+                            </p>
+                          </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Botão Enviar Seleção */}
+                      {selectedActions.length > 0 && !showTypeSelection && (
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            onClick={() => setShowTypeSelection(true)}
+                            className={`w-auto px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-sm mt-3 ${
+                              theme === "dark"
+                                ? "bg-primary hover:bg-primary/90 text-background"
+                                : "bg-[#58FF0F] hover:bg-[#00FF00] text-black"
+                            }`}
+                          >
+                            Enviar Seleção
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Seleção de Tipo (Integração ou Agente de IA) */}
+                      {showTypeSelection && (
+                        <div className="mt-4 pt-4 border-t border-border/20">
+                          <p className="text-xs text-muted-foreground font-semibold mb-3">O que você deseja criar?</p>
+                          <div className="grid grid-cols-2 gap-2 mb-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSendWithType("integração")}
+                              className={`p-2 sm:p-3 rounded-lg border-2 font-semibold transition-all ${
+                                theme === "dark"
+                                  ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10 text-foreground"
+                                  : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5 text-black"
+                              }`}
+                            >
+                              Integração
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSendWithType("agente de ia")}
+                              className={`p-2 sm:p-3 rounded-lg border-2 font-semibold transition-all ${
+                                theme === "dark"
+                                  ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10 text-foreground"
+                                  : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5 text-black"
+                              }`}
+                            >
+                              Agente de IA
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowTypeSelection(false);
+                            }}
+                            className={`w-full p-2 sm:p-3 rounded-lg border-2 font-semibold transition-all ${
+                              theme === "dark"
+                                ? "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/10 text-red-500"
+                                : "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/5 text-red-500"
+                            }`}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Dropdown Menu - Aparece acima do input */}
+                  {isDropdownOpen && !integrationsLoading && (
+                    <div className="mb-3 !bg-transparent border border-border/30 rounded-lg shadow-lg p-2 sm:p-3 z-30 max-h-40 overflow-y-auto">
+                      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
+                        {systemsList.map((integration) => (
+                          <button
+                            key={integration.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedIntegration(integration.id);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-primary/20 text-xs font-semibold text-foreground transition-colors border border-primary/30 hover:border-primary/60 bg-background/50 truncate cursor-pointer"
+                            title={integration.name}
+                          >
+                            {integration.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={sendMessage} className="relative">
+                    <div className={`relative backdrop-blur-md rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 p-2 sm:p-3 ${
+                      theme === "dark"
+                        ? "bg-transparent border border-border/30 hover:border-primary/30"
+                        : "bg-transparent border-2 border-gray-200 hover:border-[#58FF0F]/50 hover:shadow-[0_0_20px_rgba(88,255,15,0.2)]"
+                    }`}>
+                      {/* Dropdown Button - Esquerda */}
+                      <button
+                        type="button"
+                        onClick={handleOpenIntegrationDropdown}
+                        className="flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
+                      >
+                        <span className="text-xs sm:text-sm font-semibold text-foreground">+</span>
+                        <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Input - Centro */}
+                      <textarea
+                        ref={textareaRef}
+                        placeholder="Mensagem..."
                         value={inputMessage}
-                        onChange={(e) => setInputMessage(e.target.value)}
+                        onChange={(e) => {
+                          setInputMessage(e.target.value);
+                          // Auto-resize
+                          e.target.style.height = 'auto';
+                          e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+                        }}
                         disabled={isLoading}
-                        className={`w-full px-4 sm:px-6 py-4 sm:py-6 pr-12 sm:pr-14 text-sm sm:text-base bg-white text-black border-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
-                          theme === "dark" ? "placeholder:text-gray-400" : "placeholder:text-gray-400 text-black"
+                        rows={1}
+                        className={`flex-1 px-0 py-2 text-base bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none resize-none overflow-y-auto max-h-48 ${
+                          theme === "dark" ? "placeholder:text-gray-400 text-white" : "text-black placeholder:text-gray-400"
                         }`}
+                        style={{
+                          fontFamily: 'inherit',
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: theme === "dark" ? 'rgba(88, 255, 15, 0.3) transparent' : 'rgba(88, 255, 15, 0.2) transparent',
+                          border: 'none',
+                          outline: 'none',
+                          boxShadow: 'none'
+                        }}
                       />
+
+                      {/* Botão Enviar - Direita */}
                       <Button
                         type="submit"
                         disabled={isLoading || !inputMessage.trim()}
                         size="icon"
-                        className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 rounded-lg h-7 w-7 sm:h-8 sm:w-8 shadow-lg ${
+                        className={`mr-0.5 sm:mr-1 rounded-lg h-7 w-7 sm:h-8 sm:w-8 shadow-lg flex-shrink-0 mt-0.5 sm:mt-1 ${
                           theme === "dark"
                             ? "bg-primary hover:bg-primary/90 text-background"
                             : "bg-[#58FF0F] hover:bg-[#00FF00] text-black disabled:bg-gray-300"
                         } disabled:opacity-50`}
                       >
                         {isLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                         ) : (
-                          <Send className="w-4 h-4" />
+                          <Send className="w-3 h-3 sm:w-4 sm:h-4" />
                         )}
                       </Button>
                     </div>
@@ -326,7 +553,11 @@ const Index = () => {
                           </h3>
                           <button
                             type="button"
-                            onClick={() => setSelectedIntegration(null)}
+                            onClick={() => {
+                              setSelectedIntegration(null);
+                              setSelectedActions([]);
+                              setShowTypeSelection(false);
+                            }}
                             className="text-sm px-2 sm:px-3 py-1 rounded hover:bg-red-500/20 text-red-500 transition-colors flex-shrink-0"
                           >
                             ✕
@@ -335,29 +566,37 @@ const Index = () => {
 
                         {/* Lista de Ações/Opções */}
                         <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground font-semibold mb-2 sm:mb-3">Opções:</p>
+                          <p className="text-xs text-muted-foreground font-semibold mb-2 sm:mb-3">Selecione até 3 opções:</p>
                           {systemsList.find(s => s.id === selectedIntegration)?.actions.map((action, idx) => {
-                            const sistemaNome = systemsList.find(s => s.id === selectedIntegration)?.name || "";
-                            const mensagemFormatada = `Gostaria de integrar a plataforma ${sistemaNome} para fazer "${action.name}" na plataforma da ${sistemaNome}, é possível fazer isso?`;
+                            const isSelected = selectedActions.includes(action.id);
+                            const canSelect = selectedActions.length < 3 || isSelected;
                             
                             return (
                             <button
                               key={action.id}
                               type="button"
                               onClick={() => {
-                                setInputMessage(mensagemFormatada);
-                                setSelectedIntegration(null);
+                                if (canSelect) {
+                                  if (isSelected) {
+                                    setSelectedActions(prev => prev.filter(id => id !== action.id));
+                                  } else {
+                                    setSelectedActions(prev => [...prev, action.id]);
+                                  }
+                                }
                               }}
                               className={`w-full text-left p-2 sm:p-3 rounded-lg border-2 transition-all hover:shadow-md ${
-                                theme === "dark"
-                                  ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10"
-                                  : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5"
+                                isSelected
+                                  ? theme === "dark"
+                                    ? "border-primary bg-primary/20"
+                                    : "border-[#58FF0F] bg-[#58FF0F]/10"
+                                  : !canSelect
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : theme === "dark"
+                                      ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10"
+                                      : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5"
                               }`}
                             >
-                              <p className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2">
-                                <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">
-                                  {idx + 1}
-                                </span>
+                              <p className="text-xs sm:text-sm font-semibold text-foreground">
                                 <span className="truncate">{action.name}</span>
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
@@ -367,6 +606,67 @@ const Index = () => {
                             );
                           })}
                         </div>
+
+                        {/* Botão Enviar Seleção */}
+                        {selectedActions.length > 0 && !showTypeSelection && (
+                          <div className="flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setShowTypeSelection(true)}
+                              className={`w-auto px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-sm mt-3 ${
+                                theme === "dark"
+                                  ? "bg-primary hover:bg-primary/90 text-background"
+                                  : "bg-[#58FF0F] hover:bg-[#00FF00] text-black"
+                              }`}
+                            >
+                              Enviar Seleção
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Seleção de Tipo (Integração ou Agente de IA) */}
+                        {showTypeSelection && (
+                          <div className="mt-4 pt-4 border-t border-border/20">
+                            <p className="text-xs text-muted-foreground font-semibold mb-3">O que você deseja criar?</p>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSendWithType("integração")}
+                                className={`p-2 sm:p-3 rounded-lg border-2 font-semibold transition-all ${
+                                  theme === "dark"
+                                    ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10 text-foreground"
+                                    : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5 text-black"
+                                }`}
+                              >
+                                Integração
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSendWithType("agente de ia")}
+                                className={`p-2 sm:p-3 rounded-lg border-2 font-semibold transition-all ${
+                                  theme === "dark"
+                                    ? "border-primary/30 hover:border-primary/60 hover:bg-primary/10 text-foreground"
+                                    : "border-[#58FF0F]/30 hover:border-[#58FF0F]/60 hover:bg-[#58FF0F]/5 text-black"
+                                }`}
+                              >
+                                Agente de IA
+                              </button>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowTypeSelection(false);
+                              }}
+                              className={`w-full p-2 sm:p-3 rounded-lg border-2 font-semibold transition-all ${
+                                theme === "dark"
+                                  ? "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/10 text-red-500"
+                                  : "border-red-500/30 hover:border-red-500/60 hover:bg-red-500/5 text-red-500"
+                              }`}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
