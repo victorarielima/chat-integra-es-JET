@@ -119,7 +119,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                // Verifica se está na rota ativa ou em subrotas
+                let isActive = false;
+                if (item.url === "/") {
+                  isActive = location.pathname === "/";
+                } else if (item.url === "/integracoes") {
+                  // Ativa para /integracoes e /integration/:id (página de detalhes)
+                  isActive = location.pathname === "/integracoes" || location.pathname.startsWith("/integration/");
+                } else {
+                  isActive = location.pathname === item.url;
+                }
+                
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton

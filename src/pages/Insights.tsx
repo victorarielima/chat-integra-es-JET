@@ -4,12 +4,14 @@ import { MobileHeader } from "@/components/MobileHeader";
 import { getInitialSidebarState } from "@/hooks/use-sidebar-state";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useInsights } from "@/hooks/use-insights";
+import { useIntegrations } from "@/hooks/use-integrations";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, AlertCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { IntegrationIcon, AIAgentIcon, BenefitIcon } from "@/components/InsightIcons";
 
 // Função para formatar o texto com passos
 const formatInsightText = (text: string) => {
@@ -58,32 +60,73 @@ const formatInsightText = (text: string) => {
 const Insights = () => {
   const { theme } = useTheme();
   const { groupedInsights, loading, error } = useInsights();
+  const { integrations } = useIntegrations();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Calcula estatísticas
+  // Calcula estatísticas e extrai categorias das integrações
   const stats = useMemo(() => {
     const sistemas = Object.keys(groupedInsights);
     const totalInsights = Object.values(groupedInsights).reduce((sum, arr) => sum + arr.length, 0);
+    
+    // Cria um mapa de sistema -> categoria baseado nas integrações
+    const sistemaToCategoryMap: Record<string, string> = {};
+    integrations.forEach(integration => {
+      sistemaToCategoryMap[integration.name] = integration.category;
+    });
+    
+    // Extrai categorias únicas dos sistemas
+    const categoriasSet = new Set<string>();
+    sistemas.forEach(sistema => {
+      const category = sistemaToCategoryMap[sistema];
+      if (category) {
+        categoriasSet.add(category);
+      }
+    });
     
     return {
       totalSistemas: sistemas.length,
       totalInsights: totalInsights,
       sistemas: sistemas,
+      categorias: Array.from(categoriasSet).sort(),
+      sistemaToCategoryMap: sistemaToCategoryMap,
     };
-  }, [groupedInsights]);
+  }, [groupedInsights, integrations]);
 
-  // Filtra sistemas por busca
+  // Filtra sistemas por busca e categoria
   const sistemasFiltrados = useMemo(() => {
-    if (!searchTerm) return stats.sistemas;
-    const termo = searchTerm.toLowerCase();
-    return stats.sistemas.filter(sistema => {
-      const sistemaMatch = sistema.toLowerCase().includes(termo);
-      const insightsMatch = groupedInsights[sistema]?.some(insight =>
-        insight.Insight.toLowerCase().includes(termo)
-      );
-      return sistemaMatch || insightsMatch;
-    });
-  }, [searchTerm, stats.sistemas, groupedInsights]);
+    let filtered = stats.sistemas;
+    
+    // Filtro por categoria
+    if (selectedCategory) {
+      filtered = filtered.filter(sistema => {
+        return stats.sistemaToCategoryMap[sistema] === selectedCategory;
+      });
+    }
+    
+    // Filtro por busca
+    if (searchTerm) {
+      const termo = searchTerm.toLowerCase();
+      filtered = filtered.filter(sistema => {
+        const sistemaMatch = sistema.toLowerCase().includes(termo);
+        const insightsMatch = groupedInsights[sistema]?.some(insight =>
+          insight.Insight.toLowerCase().includes(termo)
+        );
+        return sistemaMatch || insightsMatch;
+      });
+    }
+    
+    return filtered;
+  }, [searchTerm, selectedCategory, stats.sistemas, groupedInsights, stats.sistemaToCategoryMap]);
+
+  // Handler para botões de categoria que remove filtro se clicado novamente
+  const handleCategoryClick = (categoria: string | null) => {
+    if (selectedCategory === categoria) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(categoria);
+    }
+  };
 
   if (loading) {
     return (
@@ -168,7 +211,7 @@ const Insights = () => {
             {/* Header */}
             <div className="mb-8 sm:mb-12">
               <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 ${theme === "dark" ? "text-white" : "text-black"}`}>
-                <span className="bg-gradient-to-r from-[#58FF0F] via-[#59FFFF] to-[#00FF00] bg-clip-text text-transparent">Insights</span> de Integração
+                <span className="bg-gradient-to-r from-[#58FF0F] via-[#59FFFF] to-[#00FF00] bg-clip-text text-transparent">Insights</span>
               </h1>
               <p className={`text-sm sm:text-base md:text-lg ${theme === "dark" ? "text-foreground/60" : "text-gray-600"}`}>
                 Explore as possibilidades de automação e integração para cada plataforma
@@ -187,6 +230,38 @@ const Insights = () => {
                 </div>
               </Card>
             )}
+
+            {/* Filtros por Categoria */}
+            <div className="mb-8 sm:mb-12">
+              <p className={`text-sm font-semibold mb-4 ${theme === "dark" ? "text-foreground/70" : "text-gray-600"}`}>
+                Filtrar por Plataforma:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleCategoryClick(null)}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selectedCategory === null
+                      ? `${theme === "dark" ? "bg-primary/20 text-primary border border-primary/50" : "bg-primary/10 text-primary border border-primary/50"}`
+                      : `${theme === "dark" ? "bg-background border border-border/30 text-foreground/70 hover:border-primary/50" : "bg-gray-100 border border-gray-300 text-gray-700 hover:border-primary/50"}`
+                  }`}
+                >
+                  Todos
+                </button>
+                {stats.categorias.map((categoria) => (
+                  <button
+                    key={categoria}
+                    onClick={() => handleCategoryClick(categoria)}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      selectedCategory === categoria
+                        ? `${theme === "dark" ? "bg-primary/20 text-primary border border-primary/50" : "bg-primary/10 text-primary border border-primary/50"}`
+                        : `${theme === "dark" ? "bg-background border border-border/30 text-foreground/70 hover:border-primary/50" : "bg-gray-100 border border-gray-300 text-gray-700 hover:border-primary/50"}`
+                    }`}
+                  >
+                    {categoria}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Busca */}
             <div className="mb-8 sm:mb-12">
@@ -213,18 +288,14 @@ const Insights = () => {
                     {/* Título do Sistema */}
                     <div className="mb-6">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className={`w-1 h-8 rounded-full bg-gradient-to-b from-primary to-primary/50`}></div>
                         <h2 className={`text-2xl sm:text-3xl font-bold ${theme === "dark" ? "text-white" : "text-black"}`}>
                           {sistema}
                         </h2>
-                        <Badge className="ml-auto">
-                          {groupedInsights[sistema].length} {groupedInsights[sistema].length === 1 ? "insight" : "insights"}
-                        </Badge>
                       </div>
                     </div>
 
                     {/* Grid de Insights */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       {groupedInsights[sistema]
                         .sort((a, b) => a.row_number - b.row_number)
                         .map((insight) => (
@@ -236,26 +307,35 @@ const Insights = () => {
                                 : "bg-white border-gray-200 hover:shadow-md border-l-primary"
                             }`}
                           >
-                            {/* Número e Badge */}
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="flex items-center gap-3">
-                                <div className="flex flex-col">
-                                  <p className="text-sm text-muted-foreground">
-                                    {insight.tipo?.toLowerCase() === "agente" 
-                                      ? "🤖 Agente de IA" 
-                                      : insight.tipo?.toLowerCase() === "integração" 
-                                      ? "🔗 Integração" 
-                                      : `Possibilidade #${insight.row_number}`}
-                                  </p>
-                                </div>
+                            {/* Ícone e Tipo - Layout vertical */}
+                            <div className="flex flex-col items-start mb-6">
+                              <div className="mb-3">
+                                {insight.tipo?.toLowerCase() === "agente" 
+                                  ? <AIAgentIcon className="w-12 h-12 text-primary" />
+                                  : insight.tipo?.toLowerCase() === "integração"
+                                  ? <IntegrationIcon className="w-12 h-12 text-primary" />
+                                  : null
+                                }
                               </div>
+                              <p className="text-sm font-bold text-foreground">
+                                {insight.tipo?.toLowerCase() === "agente" 
+                                  ? "Agente de IA" 
+                                  : insight.tipo?.toLowerCase() === "integração" 
+                                  ? "Integração" 
+                                  : `Possibilidade #${insight.row_number}`}
+                              </p>
                             </div>
 
                             {/* Indicador de Benefícios - Acima do texto */}
                             <div className="mb-4">
-                              <p className="text-xs text-muted-foreground">
-                                💡 {insight.Insight.split('—')[0].trim()}
-                              </p>
+                              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
+                                theme === "dark"
+                                  ? "bg-primary/20 text-primary"
+                                  : "bg-primary/15 text-green-700"
+                              }`}>
+                                <BenefitIcon className="w-3 h-3" />
+                                {insight.Insight.split('—')[0].trim()}
+                              </div>
                             </div>
 
                             {/* Conteúdo do Insight */}
@@ -267,9 +347,6 @@ const Insights = () => {
                           </Card>
                         ))}
                     </div>
-
-                    {/* Divisor entre sistemas */}
-                    <div className={`my-12 h-px ${theme === "dark" ? "bg-border/20" : "bg-gray-200"}`}></div>
                   </div>
                 ))}
               </div>

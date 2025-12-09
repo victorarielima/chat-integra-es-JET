@@ -109,17 +109,17 @@ const IntegrationDetail = () => {
             </Link>
 
             {/* Header com Background Destaque */}
-            <div className="mb-8 p-8 rounded-lg bg-gradient-to-r from-green-700/10 to-green-600/5 border border-green-700/20 dark:border-green-400/20">
+            <div className="mb-8 p-8 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h1 className="text-5xl font-bold text-foreground mb-3">{integration.name}</h1>
-                  <Badge variant="secondary" className="bg-green-700/20 text-green-700 dark:text-green-400 dark:bg-green-400/20 border-green-700/30 dark:border-green-400/30 border text-sm px-4 py-1 font-semibold">
+                  <Badge variant="secondary" className={`bg-primary/20 border-primary/30 border text-sm px-4 py-1 font-semibold hover:bg-primary/30 transition-colors cursor-default ${theme === "dark" ? "text-white" : "text-black"}`}>
                     {integration.category}
                   </Badge>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground mb-2 uppercase tracking-widest font-semibold">Total de Ações</p>
-                  <div className="text-5xl font-bold text-green-700 dark:text-green-400">
+                  <div className="text-5xl font-bold text-primary">
                     {integration.actions.length}
                   </div>
                 </div>
@@ -129,102 +129,37 @@ const IntegrationDetail = () => {
               </p>
             </div>
 
-            {/* Resumo Rápido */}
-            <div className="mb-8 p-6 rounded-lg bg-gradient-card border border-border/50 backdrop-blur-sm">
-              <h2 className="text-lg font-semibold text-foreground mb-2">
-                ✨ Ações Disponíveis para Integração
-              </h2>
-              <p className="text-sm text-foreground/80">
-                {integration.actions.length} endpoint{integration.actions.length !== 1 ? 's' : ''} pronto{integration.actions.length !== 1 ? 's' : ''} para conectar via n8n
-              </p>
-            </div>
-
             {/* Actions List */}
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-foreground">📋 Detalhes de Cada Ação</h3>
-              
-              {integration.actions.map((action, index) => (
-                <div key={action.id} className="p-8 rounded-lg bg-gradient-card border border-border/50 backdrop-blur-sm hover:border-green-700/50 dark:hover:border-green-400/50 hover:shadow-lg transition-all">
-                  {/* Número da Ação */}
-                  <div className="flex items-start justify-between mb-6 pb-6 border-b border-border/30">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-700/20 dark:bg-green-900/40 text-green-700 dark:text-green-400 font-bold text-lg">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-widest">Ação Possível</p>
-                        <h4 className="text-2xl font-bold text-foreground">{action.name}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {integration.actions.map((action, index) => (
+                  <div key={action.id} className="p-8 rounded-lg bg-gradient-card border border-border/50 backdrop-blur-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all h-full flex flex-col">
+                    {/* Número da Ação */}
+                    <div className="flex items-start justify-between mb-6 pb-6 border-b border-border/30">
+                      <div className="flex items-center gap-4">
+                        <div className={`flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 font-bold text-lg flex-shrink-0 ${theme === "dark" ? "text-white" : "text-black"}`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1 font-medium uppercase tracking-widest">Ação Possível</p>
+                          <h4 className="text-lg font-bold text-foreground">{action.name}</h4>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Descrição - O que faz */}
+                    {action.description && (
+                      <div className="flex-grow">
+                        <div className="bg-primary/15 dark:bg-primary/20 p-5 rounded-lg border-l-4 border-primary h-full flex items-center">
+                          <p className="text-sm text-foreground leading-relaxed">
+                            {action.description}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Informações Técnicas em Grid Limpo */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                    {/* Categoria */}
-                    <div className="p-4 rounded-lg bg-background/50">
-                      <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-widest">📂 Categoria</p>
-                      <p className="text-base font-semibold text-foreground">{integration.category}</p>
-                    </div>
-
-                    {/* Método */}
-                    <div className="p-4 rounded-lg bg-background/50">
-                      <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-widest">🔧 Método</p>
-                      <Badge className="bg-green-700 text-white dark:bg-green-600 dark:text-white text-sm font-bold px-3 py-1">
-                        {action.method}
-                      </Badge>
-                    </div>
-
-                    {/* Autenticação */}
-                    <div className="p-4 rounded-lg bg-background/50">
-                      <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-widest">🔐 Autenticação</p>
-                      <p className="text-sm font-semibold text-foreground">{action.authentication}</p>
-                    </div>
-                  </div>
-
-                  {/* Endpoint - Destaque */}
-                  <div className="mb-6 pb-6 border-b border-border/30">
-                    <p className="text-xs text-muted-foreground mb-3 font-semibold uppercase tracking-widest">🌐 Endpoint da API</p>
-                    <div className="bg-background/70 rounded-lg p-4 font-mono text-sm text-muted-foreground break-all flex items-center justify-between group hover:bg-green-700/5 dark:hover:bg-green-900/10 hover:border-green-700/30 transition-colors border border-border/50">
-                      <span className="flex-1">{action.endpoint}</span>
-                      <button
-                        onClick={() => copyToClipboard(action.endpoint, action.id)}
-                        className="ml-4 p-2 opacity-60 hover:opacity-100 transition-opacity flex-shrink-0 hover:bg-green-700/10 dark:hover:bg-green-900/20 rounded"
-                        title="Copiar endpoint"
-                      >
-                        {copiedId === action.id ? (
-                          <Check className="w-5 h-5 text-green-600 font-bold" />
-                        ) : (
-                          <Copy className="w-5 h-5 text-muted-foreground hover:text-green-700 dark:hover:text-green-400" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Descrição - Info Importante */}
-                  {action.description && (
-                    <div className="mb-6">
-                      <p className="text-xs text-muted-foreground mb-3 font-semibold uppercase tracking-widest">💡 O que faz?</p>
-                      <div className="bg-blue-700/15 dark:bg-blue-900/30 p-5 rounded-lg border-l-4 border-blue-700 dark:border-blue-400">
-                        <p className="text-base text-foreground leading-relaxed">
-                          {action.description}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Observações - Info Complementar */}
-                  {action.observations && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-3 font-semibold uppercase tracking-widest">📌 Informações Importantes</p>
-                      <div className="bg-amber-700/15 dark:bg-amber-900/30 p-5 rounded-lg border-l-4 border-amber-700 dark:border-amber-400">
-                        <p className="text-base text-foreground/90 leading-relaxed">
-                          {action.observations}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </main>
         </div>
