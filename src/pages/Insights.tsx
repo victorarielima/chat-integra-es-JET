@@ -249,9 +249,6 @@ const Insights = () => {
                                   </p>
                                 </div>
                               </div>
-                              <Badge variant="outline" className={theme === "dark" ? "border-primary/50" : "border-primary/50"}>
-                                {insight.Sistema}
-                              </Badge>
                             </div>
 
                             {/* Indicador de Benefícios - Acima do texto */}

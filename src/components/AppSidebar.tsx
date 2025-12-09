@@ -1,4 +1,4 @@
-import { MessageSquare, Workflow, Lightbulb, X, Menu, Moon, Sun } from "lucide-react";
+import { MessageSquare, Workflow, Lightbulb, X, Menu, Moon, Sun, HelpCircle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -36,6 +36,11 @@ const menuItems = [
     title: "Insights",
     icon: Lightbulb,
     url: "/insights",
+  },
+  {
+    title: "Ajuda",
+    icon: HelpCircle,
+    url: "/guia",
   },
 ];
 
@@ -131,7 +136,7 @@ export function AppSidebar() {
                         transition-all duration-200 cursor-pointer
                         ${isActive 
                           ? "bg-primary/20 text-primary hover:bg-primary/30 hover:text-primary" 
-                          : "hover:bg-accent/20"
+                          : "hover:bg-primary/20 hover:text-primary"
                         }
                       `}
                     >
@@ -156,8 +161,8 @@ export function AppSidebar() {
             onClick={toggleTheme}
             className={`w-full h-12 rounded-lg transition-all duration-300 flex items-center justify-center ${
               theme === "light"
-                ? "bg-emerald-100 text-emerald-600 hover:bg-emerald-200"
-                : "bg-emerald-900/40 text-emerald-400 hover:bg-emerald-900/60"
+                ? "bg-primary/20 text-primary hover:bg-primary/30"
+                : "bg-primary/20 text-primary hover:bg-primary/30"
             }`}
             title={`Mudar para modo ${theme === "light" ? "escuro" : "claro"}`}
           >

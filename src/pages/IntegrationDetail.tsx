@@ -102,7 +102,7 @@ const IntegrationDetail = () => {
           {/* Main Content */}
           <main className="container mx-auto px-6 py-8 md:pt-8 pt-16 relative z-10">
             <Link to="/integracoes">
-              <Button variant="ghost" size="sm" className="mb-6 hover:text-primary text-foreground/70">
+              <Button variant="ghost" size="sm" className="mb-6 text-foreground/70 hover:text-primary hover:bg-primary/10 transition-all duration-300 hover:shadow-md hover:shadow-primary/50">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Voltar para Integrações
               </Button>

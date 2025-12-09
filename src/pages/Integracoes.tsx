@@ -15,14 +15,29 @@ const Integracoes = () => {
   const { theme } = useTheme();
   const { integrations: groupedIntegrations, loading, error } = useIntegrations();
 
-  const filteredIntegrations = useMemo(() => {
+  const filteredAndGroupedIntegrations = useMemo(() => {
     const filtered = groupedIntegrations.filter(
       (integration) =>
-        integration.name.toLowerCase().includes(searchTerm.toLowerCase())
+        integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        integration.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    // Ordenar alfabeticamente por nome
-    return filtered.sort((a, b) => a.name.localeCompare(b.name));
+    // Agrupar por categoria
+    const grouped = filtered.reduce((acc, integration) => {
+      const category = integration.category || "Outros";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(integration);
+      return acc;
+    }, {} as Record<string, Integration[]>);
+
+    // Ordenar cada categoria alfabeticamente
+    Object.keys(grouped).forEach((category) => {
+      grouped[category].sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    return grouped;
   }, [groupedIntegrations, searchTerm]);
 
   return (
@@ -120,12 +135,24 @@ const Integracoes = () => {
 
             {/* Integrations Grid */}
             {!loading && !error && groupedIntegrations.length > 0 && (
-              <div className="animate-fade-in">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredIntegrations.map((integration) => (
-                    <IntegrationCard key={integration.id} integration={integration} />
-                  ))}
-                </div>
+              <div className="animate-fade-in space-y-12">
+                {Object.entries(filteredAndGroupedIntegrations).map(([category, integrations]) => (
+                  <div key={category}>
+                    {/* Category Header */}
+                    <div className="mb-6">
+                      <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-emerald-400 to-primary bg-clip-text text-transparent">
+                        {category}
+                      </h2>
+                      <div className="h-1 w-20 bg-gradient-to-r from-primary to-emerald-400 rounded-full mt-2"></div>
+                    </div>
+                    {/* Category Integrations Grid */}
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {integrations.map((integration) => (
+                        <IntegrationCard key={integration.id} integration={integration} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -137,7 +164,7 @@ const Integracoes = () => {
             )}
 
             {/* No Results */}
-            {!loading && groupedIntegrations.length > 0 && filteredIntegrations.length === 0 && (
+            {!loading && groupedIntegrations.length > 0 && Object.keys(filteredAndGroupedIntegrations).length === 0 && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Nenhuma integração encontrada para "{searchTerm}"</p>
               </div>
